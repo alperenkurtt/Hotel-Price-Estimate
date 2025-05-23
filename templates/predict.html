@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiyat Tahmini - Hotel Fiyat Tahmin Sistemi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">🏨 Hotel Fiyat Tahmin Sistemi</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/predict">Fiyat Tahmini</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analytics">Veri Analizi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <h2 class="mb-4">💰 Hotel Oda Fiyat Tahmini</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <form id="prediction-form">
+                            <h5 class="mb-3">👥 Misafir Bilgileri</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="no_of_adults" class="form-label">Yetişkin Sayısı</label>
+                                        <input type="number" min="1" max="10" class="form-control" id="no_of_adults" name="no_of_adults" value="2" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="no_of_children" class="form-label">Çocuk Sayısı</label>
+                                        <input type="number" min="0" max="10" class="form-control" id="no_of_children" name="no_of_children" value="0" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-3 mt-4">📅 Konaklama Bilgileri</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="no_of_weekend_nights" class="form-label">Hafta Sonu Gece Sayısı</label>
+                                        <input type="number" min="0" max="14" class="form-control" id="no_of_weekend_nights" name="no_of_weekend_nights" value="1" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="no_of_week_nights" class="form-label">Hafta İçi Gece Sayısı</label>
+                                        <input type="number" min="0" max="14" class="form-control" id="no_of_week_nights" name="no_of_week_nights" value="2" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="type_of_meal_plan" class="form-label">Yemek Planı</label>
+                                        <select class="form-select" id="type_of_meal_plan" name="type_of_meal_plan" required>
+                                            {% for plan in meal_plans %}
+                                            <option value="{{ plan }}">{{ plan }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="room_type_reserved" class="form-label">Oda Türü</label>
+                                        <select class="form-select" id="room_type_reserved" name="room_type_reserved" required>
+                                            {% for room in room_types %}
+                                            <option value="{{ room }}">{{ room }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-3 mt-4">🚗 Ek Hizmetler</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="required_car_parking_space" class="form-label">Otopark İhtiyacı</label>
+                                        <select class="form-select" id="required_car_parking_space" name="required_car_parking_space" required>
+                                            <option value="0">Hayır</option>
+                                            <option value="1">Evet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="no_of_special_requests" class="form-label">Özel İstek Sayısı</label>
+                                        <input type="number" min="0" max="10" class="form-control" id="no_of_special_requests" name="no_of_special_requests" value="0" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-3 mt-4">📊 Rezervasyon Detayları</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="lead_time" class="form-label">Rezervasyon Öncesi Gün Sayısı</label>
+                                        <input type="number" min="0" max="365" class="form-control" id="lead_time" name="lead_time" value="30" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="market_segment_type" class="form-label">Pazar Segmenti</label>
+                                        <select class="form-select" id="market_segment_type" name="market_segment_type" required>
+                                            {% for segment in market_segments %}
+                                            <option value="{{ segment }}">{{ segment }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="arrival_year" class="form-label">Varış Yılı</label>
+                                        <input type="number" min="2017" max="2025" class="form-control" id="arrival_year" name="arrival_year" value="2024" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="arrival_month" class="form-label">Varış Ayı</label>
+                                        <input type="number" min="1" max="12" class="form-control" id="arrival_month" name="arrival_month" value="6" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="arrival_date" class="form-label">Varış Günü</label>
+                                        <input type="number" min="1" max="31" class="form-control" id="arrival_date" name="arrival_date" value="15" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="mb-3 mt-4">🔁 Misafir Geçmişi</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="repeated_guest" class="form-label">Tekrarlayan Misafir</label>
+                                        <select class="form-select" id="repeated_guest" name="repeated_guest" required>
+                                            <option value="0">Hayır</option>
+                                            <option value="1">Evet</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="no_of_previous_cancellations" class="form-label">Önceki İptal Sayısı</label>
+                                        <input type="number" min="0" max="20" class="form-control" id="no_of_previous_cancellations" name="no_of_previous_cancellations" value="0" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="no_of_previous_bookings_not_canceled" class="form-label">Önceki Başarılı Rezervasyon</label>
+                                        <input type="number" min="0" max="50" class="form-control" id="no_of_previous_bookings_not_canceled" name="no_of_previous_bookings_not_canceled" value="0" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="booking_status" class="form-label">Rezervasyon Durumu Tahmini</label>
+                                <select class="form-select" id="booking_status" name="booking_status" required>
+                                    <option value="0">İptal Edilmeyecek</option>
+                                    <option value="1">İptal Edilebilir</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg">💰 Fiyat Tahmini Yap</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="result-section" class="mt-4 d-none">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title">🎯 Tahmin Sonucu</h3>
+                            <div class="alert alert-success mt-3">
+                                <h4 class="mb-0">Tahmini Oda Fiyatı: <span id="prediction-result" class="fw-bold"></span> ₺</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error-section" class="mt-4 d-none">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title text-danger">❌ Hata!</h3>
+                            <div class="alert alert-danger mt-3">
+                                <h4 class="mb-0" id="error-message">Tahmin yapılırken bir hata oluştu.</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <p>© 2025 Hotel Fiyat Tahmin Sistemi</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            // Sonuç ve hata bölümlerini gizle
+            document.getElementById('result-section').classList.add('d-none');
+            document.getElementById('error-section').classList.add('d-none');
+
+            fetch('/api/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server error: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    // Hata mesajını göster
+                    document.getElementById('error-message').textContent = data.message || 'Bir hata oluştu';
+                    document.getElementById('error-section').classList.remove('d-none');
+                } else {
+                    // Tahmin sonucunu göster
+                    document.getElementById('prediction-result').textContent = data.prediction;
+
+                    // Sonuç bölümünü göster
+                    document.getElementById('result-section').classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('error-message').textContent = 'Tahmin yapılırken bir hata oluştu. Lütfen tekrar deneyin.';
+                document.getElementById('error-section').classList.remove('d-none');
+            });
+        });
+    </script>
+</body>
+</html>

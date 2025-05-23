@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Fiyat Tahmin Modeli</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">🏨 Hotel Fiyat Tahmin Sistemi</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/predict">Fiyat Tahmini</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analytics">Veri Analizi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h1 class="display-4 mb-4">🏨 Hotel Fiyat Tahmin Sistemi</h1>
+                <p class="lead">
+                    Bu sistem, makine öğrenmesi kullanarak hotel rezervasyon özelliklerine göre oda fiyat tahminleri yapar.
+                    {% if model_info %}
+                    {{ model_info.model_name }} algoritması ile eğitilen model,
+                    <strong>%{{ "%.1f"|format(model_info.r2 * 100) }}</strong> doğruluk oranına sahiptir.
+                    {% endif %}
+                </p>
+                <div class="mt-5">
+                    <a href="/predict" class="btn btn-primary btn-lg me-3">💰 Fiyat Tahmini Yap</a>
+                    <a href="/analytics" class="btn btn-outline-primary btn-lg">📊 Veri Analizi</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🎯 Hızlı Tahminler</h5>
+                        <p class="card-text">Rezervasyon bilgilerinizi girerek anında oda fiyat tahmini alın.</p>
+                        <a href="/predict" class="btn btn-sm btn-primary">Tahminlere Git</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📈 Veri Analizi</h5>
+                        <p class="card-text">Hotel rezervasyon verilerine dayalı detaylı analizleri inceleyin.</p>
+                        <a href="/analytics" class="btn btn-sm btn-primary">Analizlere Git</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🤖 Model Performansı</h5>
+                        <p class="card-text">
+                            {% if model_info %}
+                            {{ model_info.model_name }} ile %{{ "%.1f"|format(model_info.r2 * 100) }} doğruluk
+                            {% else %}
+                            Model performans metriklerini görüntüleyin.
+                            {% endif %}
+                        </p>
+                        <a href="/analytics#performance" class="btn btn-sm btn-primary">Performansa Git</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <p>© 2025 Hotel Fiyat Tahmin Sistemi</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

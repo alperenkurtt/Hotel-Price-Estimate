@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veri Analizi - Hotel Fiyat Tahmin Sistemi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">🏨 Hotel Fiyat Tahmin Sistemi</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/predict">Fiyat Tahmini</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/analytics">Veri Analizi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4">📊 Veri Analizi ve Model Performansı</h2>
+
+        <ul class="nav nav-tabs" id="analytics-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab">🤖 Model Performansı</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab">📈 Veri Görselleştirme</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sample-tab" data-bs-toggle="tab" data-bs-target="#sample" type="button" role="tab">📋 Örnek Veriler</button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-4" id="analytics-content">
+            <div class="tab-pane fade show active" id="performance" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">🎯 Aktif Model Bilgileri</h5>
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <th>Model Algoritması</th>
+                                            <td><span class="badge bg-success">{{ model_info.model_name }}</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>R² Skoru (Doğruluk)</th>
+                                            <td><strong>{{ "%.4f"|format(model_info.r2) }}</strong> (%{{ "%.1f"|format(model_info.r2 * 100) }})</td>
+                                        </tr>
+                                        <tr>
+                                            <th>RMSE (Kök Ortalama Kare Hata)</th>
+                                            <td>{{ "%.2f"|format(model_info.rmse) }} ₺</td>
+                                        </tr>
+                                        <tr>
+                                            <th>MAE (Ortalama Mutlak Hata)</th>
+                                            <td>{{ "%.2f"|format(model_info.mae) }} ₺</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">📖 Metrik Açıklamaları</h5>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <strong>R² Skoru:</strong> Modelin veriyi açıklama yüzdesi. 1'e yakın olması daha iyi.
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>RMSE:</strong> Tahmin hatalarının karekökü. Düşük olması daha iyi.
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>MAE:</strong> Ortalama mutlak hata. Tahminlerin ortalama sapması.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if model_info.all_results %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">🏆 Tüm Model Sonuçları</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>R² Skoru</th>
+                                                <th>RMSE</th>
+                                                <th>MAE</th>
+                                                <th>Durum</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for model_name, metrics in model_info.all_results.items() %}
+                                            <tr {% if model_name == model_info.model_name %}class="table-success"{% endif %}>
+                                                <td>
+                                                    {{ model_name }}
+                                                    {% if model_name == model_info.model_name %}<span class="badge bg-success ms-2">Aktif</span>{% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if 'R2' in metrics %}
+                                                        {{ "%.4f"|format(metrics.R2) }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if 'RMSE' in metrics %}
+                                                        {{ "%.2f"|format(metrics.RMSE) }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if 'MAE' in metrics %}
+                                                        {{ "%.2f"|format(metrics.MAE) }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if 'Error' in metrics %}
+                                                        <span class="text-danger">Hata</span>
+                                                    {% else %}
+                                                        <span class="text-success">Başarılı</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="data" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🏆 Model Performans Karşılaştırması</h5>
+                                <img src="{{ url_for('static', filename='images/model_comparison.png') }}" class="img-fluid" alt="Model Karşılaştırması">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">💰 Fiyat Dağılımı</h5>
+                                <img src="{{ url_for('static', filename='images/price_distribution.png') }}" class="img-fluid" alt="Fiyat Dağılımı">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🎯 Gerçek vs Tahmin Edilen</h5>
+                                <img src="{{ url_for('static', filename='images/actual_vs_predicted.png') }}" class="img-fluid" alt="Gerçek vs Tahmin">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">🏨 Oda Türü Fiyat Analizi</h5>
+                                <img src="{{ url_for('static', filename='images/room_price_analysis.png') }}" class="img-fluid" alt="Oda Fiyat Analizi">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="sample" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📋 Veri Setinden Örnek Kayıtlar</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="sample-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Yetişkin</th>
+                                        <th>Çocuk</th>
+                                        <th>Hafta Sonu</th>
+                                        <th>Hafta İçi</th>
+                                        <th>Yemek Planı</th>
+                                        <th>Oda Türü</th>
+                                        <th>Ortalama Fiyat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sample-data-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center">Veriler yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 py-3 bg-light text-center">
+        <div class="container">
+            <p>© 2025 Hotel Fiyat Tahmin Sistemi</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Örnek verileri yükle
+        window.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/sample_data')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('sample-data-body');
+                tableBody.innerHTML = '';
+
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+
+                    tr.innerHTML = `
+                        <td>${row.no_of_adults}</td>
+                        <td>${row.no_of_children}</td>
+                        <td>${row.no_of_weekend_nights}</td>
+                        <td>${row.no_of_week_nights}</td>
+                        <td>${row.type_of_meal_plan}</td>
+                        <td>${row.room_type_reserved}</td>
+                        <td>${row.avg_price_per_room} ₺</td>
+                    `;
+
+                    tableBody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('sample-data-body').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Veriler yüklenirken hata oluştu.</td></tr>';
+            });
+        });
+    </script>
+</body>
+</html>
